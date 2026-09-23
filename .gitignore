@@ -1,0 +1,5 @@
+.env.local
+public/js/config.js
+node_modules/
+CLAUDE.md
+remarques.txt

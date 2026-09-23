@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>France Vision - Températures par département</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <h1>France Vision</h1>
+
+  <div id="statut" class="statut" role="status"></div>
+
+  <main>
+    <fieldset class="carte-cadre carte-metropole">
+      <legend>France</legend>
+      <svg id="svg-metropole" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>
+    </fieldset>
+
+    <div id="cartes-dom" class="cartes-dom"></div>
+  </main>
+
+  <form id="form-date-analyse" class="form-date">
+    <label for="date-analyse">Date d'analyse :</label>
+    <input type="date" id="date-analyse" name="date-analyse" required />
+    <button type="submit">Afficher</button>
+  </form>
+
+  <section class="legende">
+    <h2>Légende (température en °C)</h2>
+    <ul id="legende-liste"></ul>
+  </section>
+
+  <div id="infobulle" class="infobulle" hidden></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/couleurs.js"></script>
+  <script src="js/supabase-rest.js"></script>
+  <script src="js/infobulle.js"></script>
+  <script src="js/carte.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

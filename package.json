@@ -1,0 +1,11 @@
+{
+  "name": "france-vision",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Carte de France coloree par temperature (donnees Supabase)",
+  "scripts": {
+    "build": "node scripts/generate-config.js && node scripts/fetch-geodata.js",
+    "test-connexion": "node scripts/test-connexion.js",
+    "start": "npx --yes serve public"
+  }
+}
