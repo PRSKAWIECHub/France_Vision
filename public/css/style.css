@@ -48,7 +48,7 @@ main {
   flex-wrap: wrap;
   gap: 1.5rem;
   justify-content: center;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .carte-cadre {
@@ -67,6 +67,13 @@ main {
   width: min(90vw, 520px);
   height: min(90vw, 520px);
   display: block;
+}
+
+.colonne-droite {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  align-items: stretch;
 }
 
 .cartes-dom {
@@ -120,6 +127,37 @@ circle.point-prefecture {
   line-height: 1.3;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
   max-width: 220px;
+}
+
+.carte-evolution {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.carte-evolution svg {
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: block;
+}
+
+.courbe-evolution {
+  fill: none;
+  stroke: var(--bleu-fonce);
+  stroke-width: 2;
+}
+
+circle.point-evolution {
+  fill: var(--bleu-fonce);
+  cursor: pointer;
+}
+
+.graphe-message {
+  font-size: 0.9rem;
+  fill: #555;
 }
 
 .form-date {

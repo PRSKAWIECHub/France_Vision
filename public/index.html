@@ -17,7 +17,14 @@
       <svg id="svg-metropole" viewBox="0 0 600 600" preserveAspectRatio="xMidYMid meet"></svg>
     </fieldset>
 
-    <div id="cartes-dom" class="cartes-dom"></div>
+    <div class="colonne-droite">
+      <div id="cartes-dom" class="cartes-dom"></div>
+
+      <fieldset id="cadre-evolution" class="carte-cadre carte-evolution">
+        <legend id="titre-evolution">Évolution des températures</legend>
+        <svg id="svg-evolution" viewBox="0 0 600 300" preserveAspectRatio="xMidYMid meet"></svg>
+      </fieldset>
+    </div>
   </main>
 
   <form id="form-date-analyse" class="form-date">
@@ -38,6 +45,7 @@
   <script src="js/couleurs.js"></script>
   <script src="js/supabase-rest.js"></script>
   <script src="js/infobulle.js"></script>
+  <script src="js/evolution.js"></script>
   <script src="js/carte.js"></script>
   <script src="js/app.js"></script>
 </body>

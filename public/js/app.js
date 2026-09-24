@@ -16,6 +16,8 @@ const elStatut = document.getElementById('statut');
 const elCartesDom = document.getElementById('cartes-dom');
 const svgMetropole = document.getElementById('svg-metropole');
 const formDate = document.getElementById('form-date-analyse');
+const elTitreEvolution = document.getElementById('titre-evolution');
+const svgEvolution = document.getElementById('svg-evolution');
 
 let cheminsParCarte = []; // liste de { chemins: {code: <path>} } pour toutes les cartes affichees
 let infosParCode = new Map(); // code_departement -> { nom_departement, nom_prefecture, latitude, longitude }
@@ -46,6 +48,58 @@ function construireLegende() {
     `<li><span class="pastille" style="background:${COULEUR_SANS_DONNEE}"></span>Aucune donnée</li>`
   );
   liste.innerHTML = items.join('');
+}
+
+const formatISO = (d) => d.toISOString().slice(0, 10);
+
+// Toutes les dates d'aujourd'hui-30 a aujourd'hui (31 jours), pour un axe fixe.
+function genererPlage30Jours() {
+  const fin = new Date();
+  fin.setUTCHours(0, 0, 0, 0);
+  const debut = new Date(fin);
+  debut.setUTCDate(debut.getUTCDate() - 30);
+
+  const dates = [];
+  for (const d = new Date(debut); d <= fin; d.setUTCDate(d.getUTCDate() + 1)) {
+    dates.push(new Date(d));
+  }
+  return { debut, fin, dates };
+}
+
+async function gererDoubleClicDepartement(codeDepartement) {
+  const infos = infosParCode.get(codeDepartement);
+  if (!infos) return;
+
+  const { debut, fin, dates } = genererPlage30Jours();
+
+  elTitreEvolution.textContent = `${codeDepartement}:${infos.nom_departement} (${infos.nom_prefecture})`;
+  afficherStatut(`Chargement de l'évolution des températures pour ${infos.nom_departement}...`);
+
+  try {
+    const lignes = await supabaseSelect(SCHEMA.tableTemperature, {
+      select: `${SCHEMA.colDate},${SCHEMA.colTemperature}`,
+      filtres: {
+        [SCHEMA.colCodeDepartement]: `eq.${codeDepartement}`,
+        [SCHEMA.colDate]: [`gte.${formatISO(debut)}`, `lte.${formatISO(fin)}`],
+      },
+    });
+
+    const temperatureParDate = new Map(
+      lignes.map((l) => [String(l[SCHEMA.colDate]), Number(l[SCHEMA.colTemperature])])
+    );
+
+    // Une entree par jour de la plage, temperature=null si pas encore de donnee ce jour-la.
+    const donnees = dates.map((date) => ({
+      date,
+      temperature: temperatureParDate.has(formatISO(date)) ? temperatureParDate.get(formatISO(date)) : null,
+    }));
+
+    dessinerGrapheEvolution(svgEvolution, donnees, debut, fin);
+    afficherStatut(`Évolution affichée pour ${infos.nom_departement} (30 derniers jours).`);
+  } catch (erreur) {
+    console.error(erreur);
+    afficherStatut(erreur.message, true);
+  }
 }
 
 function creerCadreDom(codeDepartement, nomDepartement) {
@@ -103,7 +157,9 @@ async function initialiser() {
   const featuresMetropole = departementsMetropole
     .map((dep) => featuresParCode.get(String(dep[SCHEMA.colCodeDepartement])))
     .filter(Boolean);
-  cheminsParCarte.push(dessinerCarte(svgMetropole, featuresMetropole, infosParCode, obtenirTemperature));
+  cheminsParCarte.push(
+    dessinerCarte(svgMetropole, featuresMetropole, infosParCode, obtenirTemperature, gererDoubleClicDepartement)
+  );
 
   // Une carte par departement d'outre-mer present dans la table Departement
   departementsDom.sort((a, b) =>
@@ -117,7 +173,9 @@ async function initialiser() {
       continue;
     }
     const svg = creerCadreDom(code, dep[SCHEMA.colNomDepartement]);
-    cheminsParCarte.push(dessinerCarte(svg, [feature], infosParCode, obtenirTemperature));
+    cheminsParCarte.push(
+      dessinerCarte(svg, [feature], infosParCode, obtenirTemperature, gererDoubleClicDepartement)
+    );
   }
 
   construireLegende();

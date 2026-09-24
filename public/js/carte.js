@@ -5,9 +5,11 @@
 //   utilisee pour l'infobulle au survol et pour placer le point de la prefecture.
 // obtenirTemperature: fonction (code) -> temperature actuelle (ou null/undefined si inconnue),
 //   appelee au moment du survol pour toujours afficher la valeur la plus recente.
+// onDoubleClicDepartement: fonction (code) optionnelle, appelee lors d'un double-clic
+//   sur un departement (affichage de l'evolution des temperatures).
 //
 // Retourne un objet { code_departement -> element <path> } pour permettre la recoloration.
-function dessinerCarte(svgElement, features, infosParCode, obtenirTemperature) {
+function dessinerCarte(svgElement, features, infosParCode, obtenirTemperature, onDoubleClicDepartement) {
   const viewBox = svgElement.viewBox.baseVal;
   const largeur = viewBox && viewBox.width ? viewBox.width : svgElement.clientWidth || 600;
   const hauteur = viewBox && viewBox.height ? viewBox.height : svgElement.clientHeight || 600;
@@ -52,7 +54,10 @@ function dessinerCarte(svgElement, features, infosParCode, obtenirTemperature) {
         `<strong>${infos.nom_departement}</strong><br>${infos.nom_prefecture}${suffixeTemperature}`
       );
     })
-    .on('mouseleave', cacherInfobulle);
+    .on('mouseleave', cacherInfobulle)
+    .on('dblclick', function (evenement, f) {
+      if (onDoubleClicDepartement) onDoubleClicDepartement(f.properties.code);
+    });
 
   // Point noir a l'emplacement reel de la prefecture (latitude/longitude de la table Departement)
   groupes

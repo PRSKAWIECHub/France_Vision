@@ -14,7 +14,11 @@ async function supabaseSelect(table, { select = '*', filtres = {} } = {}) {
   const url = new URL(`${config.url}/rest/v1/${encodeURIComponent(table)}`);
   url.searchParams.set('select', select);
   for (const [colonne, valeur] of Object.entries(filtres)) {
-    url.searchParams.set(colonne, valeur);
+    // Une valeur tableau permet plusieurs conditions sur la meme colonne
+    // (ex: date gte.X et lte.Y), combinees en ET par PostgREST.
+    for (const v of Array.isArray(valeur) ? valeur : [valeur]) {
+      url.searchParams.append(colonne, v);
+    }
   }
 
   const reponse = await fetch(url.toString(), {
