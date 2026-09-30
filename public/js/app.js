@@ -16,12 +16,18 @@ const elStatut = document.getElementById('statut');
 const elCartesDom = document.getElementById('cartes-dom');
 const svgMetropole = document.getElementById('svg-metropole');
 const formDate = document.getElementById('form-date-analyse');
-const elTitreEvolution = document.getElementById('titre-evolution');
 const svgEvolution = document.getElementById('svg-evolution');
 
 let cheminsParCarte = []; // liste de { chemins: {code: <path>} } pour toutes les cartes affichees
 let infosParCode = new Map(); // code_departement -> { nom_departement, nom_prefecture, latitude, longitude }
 let temperatureParCode = new Map(); // code_departement -> derniere temperature chargee
+
+// Couleurs distinctes pour les courbes d'evolution (independantes de la palette temperature).
+const PALETTE_COURBES = [
+  '#4363d8', '#e6194b', '#3cb44b', '#f58231', '#911eb4',
+  '#46f0f0', '#f032e6', '#9a6324', '#000075', '#808000',
+];
+let courbesAffichees = new Map(); // code_departement -> { infos, couleur, donnees }
 
 function obtenirTemperature(codeDepartement) {
   return temperatureParCode.has(codeDepartement) ? temperatureParCode.get(codeDepartement) : null;
@@ -66,13 +72,52 @@ function genererPlage30Jours() {
   return { debut, fin, dates };
 }
 
+function couleurCourbeLibre() {
+  const utilisees = new Set(Array.from(courbesAffichees.values()).map((c) => c.couleur));
+  const libre = PALETTE_COURBES.find((c) => !utilisees.has(c));
+  return libre || PALETTE_COURBES[courbesAffichees.size % PALETTE_COURBES.length];
+}
+
+function construireLegendeEvolution() {
+  const liste = document.getElementById('legende-evolution');
+  const items = Array.from(courbesAffichees.entries()).map(
+    ([code, { infos, couleur }]) =>
+      `<li><span class="pastille" style="background:${couleur}"></span>${code}:${infos.nom_departement} (${infos.nom_prefecture})</li>`
+  );
+  liste.innerHTML = items.join('');
+}
+
+function redessinerGrapheEvolution() {
+  const { debut, fin } = genererPlage30Jours();
+  const series = Array.from(courbesAffichees.entries()).map(([code, { infos, couleur, donnees }]) => ({
+    code,
+    infos,
+    couleur,
+    donnees,
+  }));
+  dessinerGrapheEvolution(svgEvolution, series, debut, fin, gererDoubleClicCourbe);
+  construireLegendeEvolution();
+}
+
+function gererDoubleClicCourbe(codeDepartement) {
+  const entree = courbesAffichees.get(codeDepartement);
+  if (!entree) return;
+  courbesAffichees.delete(codeDepartement);
+  redessinerGrapheEvolution();
+  afficherStatut(`Évolution masquée pour ${entree.infos.nom_departement}.`);
+}
+
 async function gererDoubleClicDepartement(codeDepartement) {
   const infos = infosParCode.get(codeDepartement);
   if (!infos) return;
 
+  if (courbesAffichees.has(codeDepartement)) {
+    afficherStatut(`${infos.nom_departement} est déjà affiché sur le graphe.`);
+    return;
+  }
+
   const { debut, fin, dates } = genererPlage30Jours();
 
-  elTitreEvolution.textContent = `${codeDepartement}:${infos.nom_departement} (${infos.nom_prefecture})`;
   afficherStatut(`Chargement de l'évolution des températures pour ${infos.nom_departement}...`);
 
   try {
@@ -94,7 +139,8 @@ async function gererDoubleClicDepartement(codeDepartement) {
       temperature: temperatureParDate.has(formatISO(date)) ? temperatureParDate.get(formatISO(date)) : null,
     }));
 
-    dessinerGrapheEvolution(svgEvolution, donnees, debut, fin);
+    courbesAffichees.set(codeDepartement, { infos, couleur: couleurCourbeLibre(), donnees });
+    redessinerGrapheEvolution();
     afficherStatut(`Évolution affichée pour ${infos.nom_departement} (30 derniers jours).`);
   } catch (erreur) {
     console.error(erreur);

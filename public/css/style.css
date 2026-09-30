@@ -146,13 +146,36 @@ circle.point-prefecture {
 
 .courbe-evolution {
   fill: none;
-  stroke: var(--bleu-fonce);
   stroke-width: 2;
+  pointer-events: none;
+}
+
+.courbe-evolution-zone-clic {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 14;
+  cursor: pointer;
+  pointer-events: stroke;
 }
 
 circle.point-evolution {
-  fill: var(--bleu-fonce);
   cursor: pointer;
+}
+
+.legende-evolution {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+}
+
+.legende-evolution li {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
 }
 
 .graphe-message {
@@ -208,7 +231,7 @@ circle.point-evolution {
   font-size: 0.85rem;
 }
 
-.legende .pastille {
+.pastille {
   width: 1rem;
   height: 1rem;
   border: 1px solid #555;
